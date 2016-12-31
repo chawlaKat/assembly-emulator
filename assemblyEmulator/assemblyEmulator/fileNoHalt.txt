@@ -1,0 +1,5 @@
+1 . a
+2 . b
+3 5 . constant
+4 begin
+5 load M(3)

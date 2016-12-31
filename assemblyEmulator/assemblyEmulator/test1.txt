@@ -1,0 +1,14 @@
+0 12
+1 -2 b
+2 . this is a comment
+3 begin
+4 load M(0)
+5 load -M(0)
+6 . another comment, but next line will over write it in memory
+6 load |M(1)|
+7 load -|M(0)|
+8 stor M(1)
+9 load MQ
+10 load MQ,M(0)
+11 . line 12 was skipped intentionally
+13 halt

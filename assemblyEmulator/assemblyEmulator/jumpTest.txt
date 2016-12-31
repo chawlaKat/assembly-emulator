@@ -1,0 +1,11 @@
+0 0
+1 2
+1 -3
+3 begin
+4 jump+ M(7)
+5 jump M(9)
+6 . jump+ goes here
+7 load M(1)
+9 jump+ M(11)
+10 stor M(0)
+11 halt

@@ -1,0 +1,15 @@
+0 .nothing
+1 1
+2 2
+3 3
+4 -5
+5 begin . with a comment
+6 . nothing at all
+7 load MQ, M(3)
+8 load MQ
+9 stor M(1)
+10 load M(2)
+11 load -M(3)
+12 load |M(4)|
+13 load -|M(4)|
+14 halt

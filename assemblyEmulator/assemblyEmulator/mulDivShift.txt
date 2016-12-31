@@ -1,0 +1,25 @@
+0 0
+1 1
+2 2
+3 3
+4 4
+5
+6
+7
+8
+9 begin
+10 load M(1)
+11 load MQ,M(2)
+12 mul M(1)
+13 stor M(0)
+14 div M(2)
+15 stor M(5)
+16 load MQ,M(3)
+17 div M(2)
+18 stor M(6)
+19 load M(1)
+20 lsh
+21 stor M(7)
+22 rsh
+23 stor M(8)
+24 halt

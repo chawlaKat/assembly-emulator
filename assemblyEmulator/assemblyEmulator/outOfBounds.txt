@@ -1,0 +1,17 @@
+1 begin
+2 . stuff
+3
+4
+5
+6
+7
+8
+10
+20 
+30 stor M(2)
+40 . can I overwrite instructions
+50 . well probably yeah
+100
+500
+1000
+1001 halt

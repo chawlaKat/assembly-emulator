@@ -1,0 +1,10 @@
+0 12
+1 b
+2 . this is a comment
+3 begin
+4 load M(0)
+5 load -M(0)
+6 . line 7 does not have correct syntax
+7 load -M0)
+8 . if your program continues to this comment, ERROR read the specs.
+9 halt

@@ -1,0 +1,14 @@
+0 0
+1 1
+2 -2
+5 begin
+6 load M(1)
+7 sub M(2)
+8 stor M(0)
+9 load M(1)
+10 sub |M(1)|
+11 stor M(3)
+12 load M(1)
+13 sub |M(2)|
+14 stor M(4)
+15 halt

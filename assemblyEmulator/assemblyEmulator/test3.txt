@@ -1,0 +1,18 @@
+1 1
+2 -2
+3 5
+4 .this is a comment
+5 begin .with a comment
+6 . this is another comment
+7 load MQ,M(3)
+8 load MQ
+9 stor M(4)
+10 load M(1)
+11 load -M(1)
+12 load M(2)
+13 load -M(2)
+14 load |M(1)|
+15 load -|M(1)|
+16 load |M(2)|
+17 load -|M(2)|
+18 halt
