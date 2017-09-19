@@ -108,10 +108,8 @@ int PC = 0;
 int MAR = 0;
 string MBR = "";
 string IR = "";
-
 int AR = 0;
 int MQ = 0;
-
 Memory memPool;
 
 int main() {
@@ -140,13 +138,7 @@ int main() {
 	readFile();
 
 	// Find begin
-	cmatch results;	
-	regex beginStr("begin.*");
-	for (beginAdr = 0; beginAdr < 1000; beginAdr++) {
-		if (regex_search(memPool.get(beginAdr).c_str(), results, beginStr))
-			break;
-	}
-
+	beginAdr = getBeginAdr();
 	if (beginAdr == 1000) {
 		cout << "Could not find begin statement." << endl;
 		waitForUser();
@@ -169,7 +161,6 @@ int main() {
 }
 
 void readFile() {
-	
 	int lineNum;
 	string toStore;
 	string fromFile;
@@ -200,6 +191,18 @@ void readFile() {
 	cout << endl;
 }
 
+int getBeginAdr(){
+	cmatch results;	
+	
+	// check every index for "begin"
+	// when found, break
+	regex beginStr("begin.*");
+	for (beginAdr = 0; beginAdr < 1000; beginAdr++) {
+		if (regex_search(memPool.get(beginAdr).c_str(), results, beginStr))
+			break;
+	}
+	return beginAdr;
+}
 
 void readMemory() {
 	// while not halt and pc within memory
@@ -209,7 +212,6 @@ void readMemory() {
 	// decode and execute instructions
 	// print results
 	do {
-		
 		MAR = PC;
 		MBR = memPool.get(MAR);
 		IR = MBR;
@@ -217,7 +219,7 @@ void readMemory() {
 		PC++;
 
 		decode(IR); 
-		if (IR == "broken"){
+		if (IR == "broken") {
 			cout << "\nInstruction not recognized.\n";
 			waitForUser();
 			return 0;
