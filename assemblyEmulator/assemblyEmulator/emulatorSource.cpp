@@ -1,10 +1,11 @@
 // Kathy Chawla			30 Nov 2016			handles hw 9 expected strings, 
-//											some input validation
-//						2 Dec 2016			hw 9 corrections (moved pc++, 
-//												fixed initial print, added 
-//												extra halt message)
-//											added jump instruction
-//						7 Dec 2016			added remaining hw 10 instructions
+//									some input validation
+//				2 Dec 2016			hw 9 corrections (moved pc++, 
+//									fixed initial print, added 
+//										extra halt message)
+//									added jump instruction
+//				7 Dec 2016			added remaining hw 10 instructions
+//				19 Sept 2017			atomized functionality and improved comments
 
 
 /*  Assignment
@@ -102,93 +103,43 @@ void decode(string);
 void execute(int, int);
 void waitForUser();
 
-// Registers
-int PC = 0;									// program counter
-int MAR = 0;								// memory address register
-string MBR = "";							// memory buffer register
-string IR = "";								// instruction register
+// simulate registers and memory
+int PC = 0;
+int MAR = 0;
+string MBR = "";
+string IR = "";
+int AR = 0;
+int MQ = 0;
+Memory memPool;
 
-int AR = 0;									// accumulator register
-int MQ = 0;									// multiplier/quotient register
-
-Memory memPool;								// memory object
-
-int main()
-{
-	int beginAdr = 0;						// location of begin
-	string fName;							// user-specified file name
+int main() {
+	int beginAdr = 0;
+	string fName;
 	ifstream inputFile;
 
-	do
-	{
-		// read in name
+	// read in and validate name
+	do {
 		cout << "Enter file name: \n";
 		cin >> fName;
 
 		inputFile.open(fName);
 
-		if (!inputFile.is_open())
-		{
+		if (!inputFile.is_open()) {
 			cout << "Could not open file.\n\n";
 		}
-	} while (!inputFile.is_open());			// validate file name
+	} while (!inputFile.is_open());	
 
 	cout << "File opened successfully.\n\n";
 	memPool.clear();
 
 	// Read and print file
-	regex parseInput("(\\d+)\\s*(.*)");		// line num, whitespace, instruct
-											/* Note to self: regex quantifiers
-												+ 1 or more
-												? 0 or 1
-												* 0 or more
-											*/
-	int lineNum;
-	string toStore;
-	string fromFile;
-	cmatch results;							// results from regex
-
+	regex parseInput("(\\d+)\\s*(.*)");
 	cout << "Initial Memory: \n";
-
-	while (inputFile.good())				// until end of file
-	{
-		lineNum = -1;						// flag if line has incorrect form
-		toStore = "nop";					// if bad string, store default
-
-		getline(inputFile, fromFile);
-		cout << fromFile << endl;
-
-		// parse input
-		regex_search(fromFile.c_str(), results, parseInput);
-
-		// save any matches
-		if (results.size() >= 1)
-			lineNum = stoi(results.str());
-		if (results.size() >= 2)
-			toStore = results[2].str();
-
-		// avoid storing blank strings, use "nop" instead
-		if (toStore == "")
-			toStore = "nop";
-
-		// if relevant and in range, store
-		if (toStore != "nop" && lineNum >= 0 && lineNum < 1000)
-			memPool.set(lineNum, toStore);
-	}
-
-	inputFile.close();
-	cout << endl;
+	readFile();
 
 	// Find begin
-	regex beginStr("begin.*");				// "begin", followed by anything
-	for (beginAdr = 0; beginAdr < 1000; beginAdr++)
-	{
-		if (regex_search(memPool.get(beginAdr).c_str(), results, beginStr))
-			break;
-	}
-
-	if (beginAdr == 1000)
-	{
+	beginAdr = getBeginAdr();
+	if (beginAdr == 1000) {
 		cout << "Could not find begin statement." << endl;
 		waitForUser();
 		return 0;
@@ -197,80 +148,126 @@ int main()
 	// Fetch
 	PC = beginAdr;
 	cout << "Execution: \n";
-	do
-	{
-		MAR = PC;							// MAR <- (PC)
-		MBR = memPool.get(MAR);				// MBR <- (memory)
-		IR = MBR;							// IR <- (MBR)
-
-		cout << "PC: " << PC << "\tIR: " << IR << endl;
-
-		PC++;								// PC <- (PC) + 1
-
-		decode(IR); 
-		if (IR == "broken")					// unrecognized instruction, quit
-		{
-			cout << "\nInstruction not recognized.\n";
-			waitForUser();
-			return 0;
-		}
-
-		cout << "PC: " << PC << "\tAR: " << AR << "\tMQ: " << MQ << endl 
-			<< endl;
-
-	} while (IR != "halt" && PC < 1000);	// not halt or in working memory
-
-	if (IR == "halt")
-	{
-		cout << "Halt decoded. Stopping execution.\n\n";
-	}
-
-	if (PC == 1000)							// out of memory bounds, quit
-	{
-		cout << "No halt found. Memory out of bounds.\n";
-		waitForUser();
-		return 0;
-	}
+	readMemory();
 
 	// Print Final Memory
 	cout << "Final Memory: \n";
 	for (int i = 0; i < PC; i++)
-	{
 		cout << i << " " << memPool.get(i) << endl;
-	}
 	cout << endl;
 
 	waitForUser();
 	return 0;
 }
 
-void decode(string inst)
-{
-	cmatch res;
-													// no op			no call
-	regex comment("\\..*");							// comment			no call
-	regex begin("begin.*");							// begin			no call
-	regex halt("halt.*");							// halt				no call
-	regex loadMQ("load\\s*MQ");						// load MQ			1
-	regex loadMQMX("load\\s*MQ,\\s*M\\((\\d+)\\)");	// load MQ,M(X)		2
-	regex storMX("stor\\s*M\\((\\d+)\\)");			// stor M(X)		3
-	regex load("load\\s*M\\((\\d+)\\)");			// load M(X)		4
-	regex loadNeg("load\\s*-\\s*M\\s*\\((\\d+)\\)");// load -M(X)		5
-	regex loadAbs									// load |M(X)|		6
-		("load\\s*\\|\\s*M\\s*\\((\\d+)\\)\\s*\\|");
-	regex loadNabs									// load -|M(X)|		7
-		("load\\s*-\\s*\\|\\s*M\\((\\d+)\\)\\s*\\|");		
-	regex jump("jump\\s*M\\((\\d+)\\)");			// jump M(X)		8
-	regex jumpPlus("jump\\+\\s*M\\((\\d+)\\)"); 	// jump+ M(X)		9
-	regex add("add\\s*M\\((\\d+)\\)");				// add M(X)			10
-	regex addAbs("add\\s*\\|\\s*M\\((\\d+)\\)\\s*\\|");
-													// add |M(X)|		11
-	regex sub("sub\\s*M\\((\\d+)\\)");				// sub M(X)			12
-	regex subAbs("sub\\s*\\|\\s*M\\s*\\((\\d+)\\)\\s*\\|");
-													// sub |M(X)|		13
-	regex mul("mul\\s*M\\((\\d+)\\)");				// mul M(X)			14
-	regex div("div\\s*M\\((\\d+)\\)");				// div M(X)			15
+void readFile() {
+	int lineNum;
+	string toStore;
+	string fromFile;
+	cmatch results;
+	
+	// while still info in file
+	// input validation, parse input, save matches
+	// if not blank and in range, store
+	while (inputFile.good()) {
+		lineNum = -1;
+		toStore = "nop";
 
+		getline(inputFile, fromFile);
+		cout << fromFile << endl;
+
+		regex_search(fromFile.c_str(), results, parseInput);
+		if (results.size() >= 1)
+			lineNum = stoi(results.str());
+		if (results.size() >= 2)
+			toStore = results[2].str();
+		if (toStore == "")
+			toStore = "nop";
+		if (toStore != "nop" && lineNum >= 0 && lineNum < 1000)
+			memPool.set(lineNum, toStore);
+	}
+
+	inputFile.close();
+	cout << endl;
+}
+
+int getBeginAdr(){
+	cmatch results;	
+	
+	// check every index for "begin"
+	// when found, break
+	regex beginStr("begin.*");
+	for (beginAdr = 0; beginAdr < 1000; beginAdr++) {
+		if (regex_search(memPool.get(beginAdr).c_str(), results, beginStr))
+			break;
+	}
+	return beginAdr;
+}
+
+void readMemory() {
+	// while not halt and pc within memory
+	// get address, put memory in buffer
+	// load instruction register, print IR
+	// increment program counter
+	// decode and execute instructions
+	// print results
+	do {
+		MAR = PC;
+		MBR = memPool.get(MAR);
+		IR = MBR;
+		cout << "PC: " << PC << "\tIR: " << IR << endl;
+		PC++;
+
+		decode(IR); 
+		if (IR == "broken") {
+			cout << "\nInstruction not recognized.\n";
+			waitForUser();
+			return 0;
+		}
+		cout << "PC: " << PC << "\tAR: " << AR << "\tMQ: " << MQ << endl << endl;
+	} while (IR != "halt" && PC < 1000);
+
+	if (IR == "halt") {
+		cout << "Halt decoded. Stopping execution.\n\n";
+	}
+
+	// if out of memory bounds
+	if (PC == 1000) {
+		cout << "No halt found. Memory out of bounds.\n";
+		waitForUser();
+		return 0;
+	}
+}
+
+void decode(string inst) {
+	cmatch res;
+	
+	// interpret instructions
+	regex comment("\\..*");	
+	regex begin("begin.*");	
+	regex halt("halt.*");	
+	regex loadMQ("load\\s*MQ");
+	regex loadMQMX("load\\s*MQ,\\s*M\\((\\d+)\\)");	
+	regex storMX("stor\\s*M\\((\\d+)\\)");		
+	regex load("load\\s*M\\((\\d+)\\)");		
+	regex loadNeg("load\\s*-\\s*M\\s*\\((\\d+)\\)");
+	regex loadAbs					
+		("load\\s*\\|\\s*M\\s*\\((\\d+)\\)\\s*\\|");
+	regex loadNabs					
+		("load\\s*-\\s*\\|\\s*M\\((\\d+)\\)\\s*\\|");		
+	regex jump("jump\\s*M\\((\\d+)\\)");		
+	regex jumpPlus("jump\\+\\s*M\\((\\d+)\\)"); 	
+	regex add("add\\s*M\\((\\d+)\\)");		
+	regex addAbs("add\\s*\\|\\s*M\\((\\d+)\\)\\s*\\|");
+							
+	regex sub("sub\\s*M\\((\\d+)\\)");		
+	regex subAbs("sub\\s*\\|\\s*M\\s*\\((\\d+)\\)\\s*\\|");
+
+	regex mul("mul\\s*M\\((\\d+)\\)");
+	regex div("div\\s*M\\((\\d+)\\)");
+
+	// call execute if applicable
+	// save "broken" if could not decode
 	if (inst == "nop"
 		|| regex_search(inst.c_str(), res, comment)
 		|| regex_search(inst.c_str(), res, begin));
@@ -314,19 +311,17 @@ void decode(string inst)
 		IR = "broken";
 }
 
-void execute(int op, int val)
-{
+// perform instructions (valid commands on line 37)
+void execute(int op, int val) {
 	string fromMemStr = "";
 	int fromMem = 0;
-	if (op != 1 && op != 3 && op != 8 && op !=9 && op != 16 && op != 17)
-	{
+	if (op != 1 && op != 3 && op != 8 && op !=9 && op != 16 && op != 17) {
 		fromMemStr = memPool.get(val);
 		if (fromMemStr.find_first_of("0123456789") != string::npos)
 			fromMem = stoi(memPool.get(val));
 	}
 
-	switch (op)
-	{
+	switch (op) {
 	case 1:
 		AR = MQ;
 		break;
@@ -384,8 +379,7 @@ void execute(int op, int val)
 		AR = fromMem * MQ;
 		break;
 	case 15:
-		if (fromMem != 0)
-		{
+		if (fromMem != 0) {
 			MQ = AR / fromMem;
 			AR /= fromMem;
 		}
@@ -401,10 +395,10 @@ void execute(int op, int val)
 	}
 }
 
-void waitForUser()
-{
+void waitForUser() {
+	// makes program wait for user input before exiting
 	cout << "Program exiting. Press return or enter any text to quit.\n";
-	cin.clear();							// restores cin if bad
-	cin.ignore(256, '\n');					// ignores anything left in cin
-	cin.get();								// forces program to wait for user
+	cin.clear();
+	cin.ignore(256, '\n');
+	cin.get();
 }
