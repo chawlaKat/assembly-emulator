@@ -1,10 +1,11 @@
 // Kathy Chawla			30 Nov 2016			handles hw 9 expected strings, 
-//											some input validation
-//						2 Dec 2016			hw 9 corrections (moved pc++, 
-//												fixed initial print, added 
-//												extra halt message)
-//											added jump instruction
-//						7 Dec 2016			added remaining hw 10 instructions
+//									some input validation
+//				2 Dec 2016			hw 9 corrections (moved pc++, 
+//									fixed initial print, added 
+//										extra halt message)
+//									added jump instruction
+//				7 Dec 2016			added remaining hw 10 instructions
+//				19 Sept 2017			atomized functionality and improved comments
 
 
 /*  Assignment
