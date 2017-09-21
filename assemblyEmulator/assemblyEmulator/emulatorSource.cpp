@@ -11,7 +11,7 @@
 /*  Assignment
 
 Implement a simulator for the IAS assembly language, following the 
-fetch-execute cycle.
+fetch-execute cycle and using global variables to simulate registers.
 
 Valid instructions
 
@@ -106,6 +106,7 @@ void execute(int, int);
 void waitForUser();
 
 // simulate registers and memory
+// global as per professor's request
 int PC = 0;
 int MAR = 0;
 string MBR = "";
