@@ -11,7 +11,7 @@
 /*  Assignment
 
 Implement a simulator for the IAS assembly language, following the 
-fetch-execute cycle and using global variables to simulate registers.
+fetch-execute cycle.
 
 Valid instructions
 
@@ -313,7 +313,7 @@ void decode(string inst) {
 		IR = "broken";
 }
 
-// perform instructions (valid commands on line 37)
+// perform instructions (valid commands on line 16)
 void execute(int op, int val) {
 	string fromMemStr = "";
 	int fromMem = 0;
